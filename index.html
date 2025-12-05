@@ -130,6 +130,7 @@
             z-index: 5;
             opacity: 0.7;
             transition: background 0.2s ease, opacity 0.2s ease;
+            touch-action: none;
         }
 
         .resize-handle:hover,
@@ -341,25 +342,39 @@ function restoreLayoutSizing() {
 function startResize(type, event) {
     event.preventDefault();
     const layout = document.getElementById("layout");
+    const rect = layout.getBoundingClientRect();
+
+    const startX = event.clientX;
+    const startY = event.clientY;
+    const startSideWidth = layoutState.sideWidth;
+    const startTopHeight = layoutState.topHeight;
+    const previousUserSelect = document.body.style.userSelect;
+    document.body.style.userSelect = "none";
 
     function onMove(e) {
-        const rect = layout.getBoundingClientRect();
-
         if (type === "vertical") {
-            const offset = clamp(e.clientX - rect.left, 80, rect.width - 80);
-            const sideWidth = 100 - ((offset / rect.width) * 100);
+            const deltaX = e.clientX - startX;
+            const sideWidth = clamp(startSideWidth - ((deltaX / rect.width) * 100), 15, 85);
             applyLayout({ sideWidth });
         } else if (type === "horizontal") {
-            const offset = clamp(e.clientY - rect.top, 80, rect.height - 80);
-            const topHeight = (offset / rect.height) * 100;
+            const deltaY = e.clientY - startY;
+            const topHeight = clamp(startTopHeight + ((deltaY / rect.height) * 100), 25, 85);
             applyLayout({ topHeight });
         }
     }
 
-    function onUp() {
+    function onUp(e) {
+        if (e.target.releasePointerCapture) {
+            e.target.releasePointerCapture(event.pointerId);
+        }
+        document.body.style.userSelect = previousUserSelect;
         persistLayout();
         document.removeEventListener("pointermove", onMove);
         document.removeEventListener("pointerup", onUp);
+    }
+
+    if (event.target.setPointerCapture) {
+        event.target.setPointerCapture(event.pointerId);
     }
 
     document.addEventListener("pointermove", onMove);
