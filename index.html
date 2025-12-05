@@ -56,7 +56,22 @@
         .version {
             margin-left: auto;
             font-size: 12px;
-            color: #aaa;
+            color: #0ff;
+            background: #002b36;
+            border: 1px solid #044a63;
+            border-radius: 12px;
+            padding: 4px 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .version::before {
+            content: "●";
+            color: #4cf3ff;
+            font-size: 10px;
         }
 
         #status {
@@ -68,13 +83,30 @@
         #layout {
             height: calc(100% - 60px);
             display: grid;
-            grid-template-columns: 2fr 1fr; /* left big, right smaller */
+            grid-template-columns: 2fr 1fr;
+            grid-template-rows: minmax(0, 1fr) minmax(0, 0.6fr);
+            grid-template-areas:
+                "youtube side"
+                "bottom bottom";
+            gap: 8px;
+            padding: 8px;
+            box-sizing: border-box;
         }
 
-        .right-pane {
-            display: grid;
-            grid-template-rows: 1fr 1fr;
-            height: 100%;
+        .youtube-pane {
+            grid-area: youtube;
+        }
+
+        .side-pane {
+            grid-area: side;
+        }
+
+        .bottom-pane {
+            grid-area: bottom;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            height: auto;
+            max-height: 100%;
         }
 
         iframe {
@@ -95,29 +127,28 @@
         </div>
 
         <div>
-            <input id="url1" type="text" placeholder="Right top URL">
-            <input id="url2" type="text" placeholder="Right bottom URL">
+            <input id="url1" type="text" placeholder="Right-side URL">
+            <input id="url2" type="text" placeholder="Bottom URL">
             <button onclick="loadOther()">Load Right Frames</button>
             <button onclick="refreshRightFrames()">Refresh Right Frames</button>
         </div>
 
         <div id="status" aria-live="polite"></div>
 
-        <div class="version" aria-label="Application version">v0.1</div>
+        <div class="version" aria-label="Application version" id="appVersion">v0.2.0</div>
     </div>
 
     <div id="layout">
         <!-- NOTE: referrerpolicy added here -->
         <iframe
+            class="youtube-pane"
             id="ytFrame"
             allowfullscreen
             referrerpolicy="strict-origin-when-cross-origin">
         </iframe>
 
-        <div class="right-pane">
-            <iframe id="frame1"></iframe>
-            <iframe id="frame2"></iframe>
-        </div>
+        <iframe class="side-pane" id="frame1"></iframe>
+        <iframe class="bottom-pane" id="frame2"></iframe>
     </div>
 
 <script>
@@ -173,7 +204,18 @@ function setFrameSrc(frameId, url) {
     }
 }
 
+const APP_VERSION = "v0.2.0";
 const RIGHT_PANELS_KEY = "yt-wrapper:right-panels";
+
+function renderVersion() {
+    const versionEl = document.getElementById("appVersion");
+    if (versionEl) {
+        versionEl.textContent = `Version ${APP_VERSION}`;
+        versionEl.setAttribute("data-version", APP_VERSION);
+    }
+
+    document.title = `3-Panel YouTube + URL Loader (${APP_VERSION})`;
+}
 
 function persistRightPanels(url1, url2) {
     const payload = { url1, url2 };
@@ -288,7 +330,9 @@ function showStatus(message, isError = false) {
     el.style.color = isError ? "#f55" : "#8f8";
 }
 
+renderVersion();
 restoreRightPanels();
+showStatus(`Ready · ${APP_VERSION}`);
 </script>
 
 </body>
