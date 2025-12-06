@@ -1,4 +1,4 @@
-# yt-wrapper
+# stream-wrapper
 Simple three-panel URL wrapper for streaming or monitoring.
 
 ## How it works
